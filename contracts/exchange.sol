@@ -13,8 +13,8 @@ contract TokenExchange {
     using SafeMath for uint;
     address public admin;
 
-    address tokenAddr;                              // TODO: Paste token contract address here.
-    Token private token = Token(tokenAddr);         // TODO: Replace "Token" with your token class.             
+    address tokenAddr = 0x3FE51636323e20111Dea98FD1E2DEb3c3BEB4ec9;
+    DlimToken private token = DlimToken(tokenAddr);
 
     // Liquidity pool for the exchange
     uint public token_reserves = 0;

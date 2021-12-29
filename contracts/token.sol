@@ -8,12 +8,11 @@ import '../interfaces/erc20_interface.sol';
 import '../libraries/safe_math.sol';
  
 // Your token contract
-// TODO: Replace "Token" with your token name!
-contract Token is IERC20 {
+contract DlimToken is IERC20 {
     using SafeMath for uint;
 
-    string public constant symbol = '';                 // TODO: Give your token a symbol
-    string public constant name = '';                   // TODO: Give your token a name
+    string public constant symbol = 'DLIM';
+    string public constant name = 'DlimToken';
     uint8 public constant decimals = 18;                // See note about decimals in section 2
 
     mapping(address => uint) balances;
@@ -22,6 +21,8 @@ contract Token is IERC20 {
     uint public _totalSupply;
     
     address public admin;
+
+    bool private _canMint = true;
 
     constructor() {
         _totalSupply = 0;
@@ -46,7 +47,11 @@ contract Token is IERC20 {
         public 
         AdminOnly
     {
-        /******* TODO: Implement this function *******/
+      require(_canMint == true);
+      // creates new tokens, adjusts the totalSupply variable, a
+      _totalSupply = _totalSupply.add(amount);
+      // and sends those tokens to the administrator of the contract
+      balances[msg.sender] = balances[msg.sender].add(amount);
     }
 
     // Function _disable_mint: Disable future minting of your token.
@@ -56,7 +61,7 @@ contract Token is IERC20 {
         public
         AdminOnly
     {
-        /******* TODO: Implement this function *******/
+      _canMint = false;
     }
 
 
