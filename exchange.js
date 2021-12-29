@@ -3,27 +3,15 @@
 // ========================================================= //                  
 
 // sets up web3.js
-const web3 = new Web3(Web3.givenProvider || "ws://localhost:8545");
+const web3 = new Web3("ws://localhost:8545");
 
 const exchange_name = 'Your Exchange Name'; // TODO: fill in the name of your exchange
 
-const token_name = 'YourToken';             // TODO: replace with name of your token
-const token_symbol = 'TOKEN';               // TODO: replace with symbol for your token
+const token_name = 'DlimToken';
+const token_symbol = 'DLIM';
 
-
-// =============================================================================
-//         ABIs and Contract Addresses: Paste Your ABIs/Addresses Here
-// =============================================================================
-// TODO: Paste your token contract address and ABI here:
-const token_address = '';                   
-const token_abi = [];
 const token_contract = new web3.eth.Contract(token_abi, token_address);
-
-// TODO: Paste your exchange address and ABI here
-const exchange_address = '';    
-const exchange_abi = [];            
 const exchange_contract = new web3.eth.Contract(exchange_abi, exchange_address);
-
 
 
 // =============================================================================
