@@ -1,0 +1,27 @@
+{
+  "name": "proj3_starter",
+  "version": "1.0.0",
+  "description": "Stanford University, CS251 Project 3: Building a DEX Authors: Simon Tao ('22), Mathew Hogan ('22), under the guidance of Professor Dan Boneh.",
+  "main": "abi-decoder.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dan-l/build-a-dex.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dan-l/build-a-dex/issues"
+  },
+  "homepage": "https://github.com/dan-l/build-a-dex#readme",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.3",
+    "@nomiclabs/hardhat-waffle": "^2.0.1",
+    "chai": "^4.3.4",
+    "ethereum-waffle": "^3.4.0",
+    "ethers": "^5.5.2",
+    "hardhat": "^2.8.0"
+  }
+}
