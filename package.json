@@ -4,7 +4,11 @@
   "description": "Stanford University, CS251 Project 3: Building a DEX Authors: Simon Tao ('22), Mathew Hogan ('22), under the guidance of Professor Dan Boneh.",
   "main": "abi-decoder.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy-token": "npx hardhat run --network localhost scripts/deploy-token.js",
+    "deploy-exchange": "npx hardhat run --network localhost scripts/deploy-exchange.js",
+    "start-node": "ganache-cli",
+    "test-contract": "npx hardhat test"
   },
   "repository": {
     "type": "git",
