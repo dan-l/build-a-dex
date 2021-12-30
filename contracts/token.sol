@@ -24,6 +24,9 @@ contract DlimToken is IERC20 {
 
     bool private _canMint = true;
 
+    event MintedEvent(uint amount);
+    event DisabledMintEvent();
+
     constructor() {
         _totalSupply = 0;
         balances[msg.sender] = 0;  
@@ -47,11 +50,13 @@ contract DlimToken is IERC20 {
         public 
         AdminOnly
     {
-      require(_canMint == true);
+      require(_canMint, "Minting is disabled");
+      require(amount > 0, "Amount needs to be positive");
       // creates new tokens, adjusts the totalSupply variable, a
       _totalSupply = _totalSupply.add(amount);
       // and sends those tokens to the administrator of the contract
       balances[msg.sender] = balances[msg.sender].add(amount);
+      emit MintedEvent(amount);
     }
 
     // Function _disable_mint: Disable future minting of your token.
@@ -62,6 +67,7 @@ contract DlimToken is IERC20 {
         AdminOnly
     {
       _canMint = false;
+      emit DisabledMintEvent();
     }
 
 
