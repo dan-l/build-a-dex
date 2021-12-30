@@ -13,8 +13,7 @@ contract TokenExchange {
     using SafeMath for uint;
     address public admin;
 
-    address tokenAddr = 0x3FE51636323e20111Dea98FD1E2DEb3c3BEB4ec9;
-    DlimToken private token = DlimToken(tokenAddr);
+    DlimToken private token;
 
     // Liquidity pool for the exchange
     uint public token_reserves = 0;
@@ -31,15 +30,16 @@ contract TokenExchange {
     event RemoveLiquidity(address to, uint amount);
     event Received(address from, uint amountETH);
 
-    constructor() 
+    constructor(address tokenAddr) 
     {
         admin = msg.sender;
+        token = DlimToken(tokenAddr);
     }
     
     modifier AdminOnly {
         require(msg.sender == admin, "Only admin can use this function!");
         _;
-    }
+    }    
 
     // Used for receiving ETH
     receive() external payable {
@@ -80,15 +80,16 @@ contract TokenExchange {
     
     // Function priceToken: Calculate the price of your token in ETH.
     // You can change the inputs, or the scope of your function, as needed.
-    function priceToken() 
-        public 
+    function priceToken()
+        public
         view
         returns (uint)
     {
-        /******* TODO: Implement this function *******/
-        /* HINTS:
-            Calculate how much ETH is of equivalent worth based on the current exchange rate.
-        */
+        // we want ETH price, so ETH reserve / token reserve
+        uint numerator = eth_reserves * (10**18);
+        uint denominator = token_reserves;
+        (, uint price) = numerator.tryDiv(denominator);
+        return price;
     }
 
     // Function priceETH: Calculate the price of ETH for your token.
@@ -98,10 +99,11 @@ contract TokenExchange {
         view
         returns (uint)
     {
-        /******* TODO: Implement this function *******/
-        /* HINTS:
-            Calculate how much of your token is of equivalent worth based on the current exchange rate.
-        */
+        // token reserve / ETH reserve
+        uint numerator = token_reserves * (10**token.decimals());
+        uint denominator = eth_reserves;
+        (, uint price) = numerator.tryDiv(denominator);
+        return price;
     }
 
 
