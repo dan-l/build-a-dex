@@ -5,14 +5,15 @@
 // sets up web3.js
 const web3 = new Web3("ws://localhost:8545");
 
-const exchange_name = 'Your Exchange Name'; // TODO: fill in the name of your exchange
+const exchange_name = 'DLIM exchange';
 
 const token_name = 'DlimToken';
 const token_symbol = 'DLIM';
 
 const token_contract = new web3.eth.Contract(token_abi, token_address);
+token_contract.events.allEvents(console.log);
 const exchange_contract = new web3.eth.Contract(exchange_abi, exchange_address);
-
+exchange_contract.events.allEvents(console.log);
 
 // =============================================================================
 //                              Provided Functions
@@ -65,8 +66,17 @@ function log(description, obj) {
 
 /*** ADD LIQUIDITY ***/
 async function addLiquidity(amountEth, maxSlippagePct) {
-    /** TODO: ADD YOUR CODE HERE **/
-
+    const ethPrice = await exchange_contract.methods.priceETH().call({
+      from: web3.eth.defaultAccount
+    });
+    const tokensToSupply = amountEth * ethPrice * (10 ** -18);
+    await token_contract.methods.approve(exchange_address, tokensToSupply).send({
+      from: web3.eth.defaultAccount
+    });
+    await exchange_contract.methods.addLiquidity().send({
+      value: amountEth,
+      from: web3.eth.defaultAccount
+    });
 }
 
 /*** REMOVE LIQUIDITY ***/

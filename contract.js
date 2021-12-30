@@ -1,7 +1,7 @@
 // =============================================================================
 //         ABIs and Contract Addresses: Paste Your ABIs/Addresses Here
 // =============================================================================
-const token_address = '0x3FE51636323e20111Dea98FD1E2DEb3c3BEB4ec9';
+const token_address = '0x3d069f1E2b6EFb38AF9E742bDa5F50a4C6274bD8';
 const token_abi = [
     {
       "inputs": [],
@@ -31,6 +31,25 @@ const token_abi = [
         }
       ],
       "name": "Approval",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [],
+      "name": "DisabledMintEvent",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "MintedEvent",
       "type": "event"
     },
     {
@@ -278,7 +297,7 @@ const token_abi = [
     }
   ];
 
-const exchange_address = '0x01829462F7398efECBbFf18526983741E0a772a4';
+const exchange_address = '0x3d27fD6842F9ca8c9eFa284Bd4F1BF324998258D';
 const exchange_abi = [
     {
       "inputs": [
@@ -412,13 +431,7 @@ const exchange_abi = [
       "type": "function"
     },
     {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "decimals",
-          "type": "uint256"
-        }
-      ],
+      "inputs": [],
       "name": "priceETH",
       "outputs": [
         {
@@ -431,13 +444,7 @@ const exchange_abi = [
       "type": "function"
     },
     {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "decimals",
-          "type": "uint256"
-        }
-      ],
+      "inputs": [],
       "name": "priceToken",
       "outputs": [
         {

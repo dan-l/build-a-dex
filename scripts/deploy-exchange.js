@@ -15,7 +15,7 @@ async function main() {
 
   // We get the contract to deploy
   const Exchange = await hre.ethers.getContractFactory("TokenExchange");
-  const exhange = await Exchange.deploy();
+  const exhange = await Exchange.deploy('0x3d069f1E2b6EFb38AF9E742bDa5F50a4C6274bD8');
 
   await exhange.deployed();
 
