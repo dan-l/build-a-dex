@@ -278,10 +278,16 @@ const token_abi = [
     }
   ];
 
-const exchange_address = '0x8FCC639199DA5EF33153D5579519839f2937BB3E';
+const exchange_address = '0x01829462F7398efECBbFf18526983741E0a772a4';
 const exchange_abi = [
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "tokenAddr",
+          "type": "address"
+        }
+      ],
       "stateMutability": "nonpayable",
       "type": "constructor"
     },
@@ -406,7 +412,13 @@ const exchange_abi = [
       "type": "function"
     },
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "decimals",
+          "type": "uint256"
+        }
+      ],
       "name": "priceETH",
       "outputs": [
         {
@@ -419,7 +431,13 @@ const exchange_abi = [
       "type": "function"
     },
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "decimals",
+          "type": "uint256"
+        }
+      ],
       "name": "priceToken",
       "outputs": [
         {
@@ -489,3 +507,40 @@ const exchange_abi = [
       "type": "receive"
     }
   ];
+
+abiDecoder.addABI(token_abi);
+abiDecoder.addABI(exchange_abi);
+
+const GENESIS = '0x0000000000000000000000000000000000000000000000000000000000000000';
+
+async function debugTransactions() {
+  var curBlock = await web3.eth.getBlockNumber();
+  var function_calls = [];
+
+  while (curBlock !== GENESIS) {
+    var b = await web3.eth.getBlock(curBlock, true);
+    var txns = b.transactions;
+    for (var j = 0; j < txns.length; j++) {
+      var txn = txns[j];
+
+      // check that destination of txn is our contract
+      if(txn.to == null){continue;}
+      var func_call = abiDecoder.decodeMethod(txn.input);
+
+      var time = await web3.eth.getBlock(curBlock);
+        var args = func_call.params.map(function (x) {return x.value});
+        console.log('transaction', JSON.stringify({
+          contract: txn.to.toLowerCase() === token_address.toLowerCase() ? 'DLIM': 'EXCHANGE',
+          name: func_call.name,
+          from: txn.from.toLowerCase(),
+          args: args,
+          t: new Date(time.timestamp * 1000)
+        }, null, 2));
+    }
+    curBlock = b.parentHash;
+  }
+}
+
+$('#debug-transactions').click(async function() {
+  await debugTransactions();
+});
