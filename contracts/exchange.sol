@@ -18,6 +18,10 @@ contract TokenExchange {
     // Liquidity pool for the exchange
     uint public token_reserves = 0;
     uint public eth_reserves = 0;
+    // Total supply of LP tokens
+    uint private totalSupply = 0;
+    // Each address percentage of the liquidity pool
+    mapping (address => uint) private lpPool;
 
     // Constant: x * y = k
     uint public k;
@@ -65,12 +69,8 @@ contract TokenExchange {
         require (amountTokens > 0, "Need tokens to create pool.");
 
         token.transferFrom(msg.sender, address(this), amountTokens);
-        eth_reserves = msg.value;
-        token_reserves = amountTokens;
-        k = eth_reserves.mul(token_reserves);
-
-        // TODO: Keep track of the initial liquidity added so the initial provider
-        //          can remove this liquidity
+        updateLiquidityInfo(msg.value, msg.value);
+        updateReserveRatio(msg.value, amountTokens);
     }
 
     // ============================================================
@@ -86,9 +86,7 @@ contract TokenExchange {
         returns (uint)
     {
         // we want ETH price, so ETH reserve / token reserve
-        uint numerator = eth_reserves.mul(10**18);
-        uint denominator = token_reserves;
-        (, uint price) = numerator.tryDiv(denominator);
+        (, uint price) = eth_reserves.tryDiv(token_reserves);
         return price;
     }
 
@@ -99,10 +97,7 @@ contract TokenExchange {
         view
         returns (uint)
     {
-        // token reserve / ETH reserve
-        uint numerator = token_reserves.mul(10**token.decimals());
-        uint denominator = eth_reserves;
-        (, uint price) = numerator.tryDiv(denominator);
+        (, uint price) = token_reserves.tryDiv(eth_reserves);
         return price;
     }
 
@@ -117,16 +112,16 @@ contract TokenExchange {
     {
         uint ethSupplied = msg.value;
         // Calculate the liquidity to be added based on what was sent in and the prices.
-        // (, uint tokenSupplied) = ethSupplied.mul(priceETH()).tryDiv(10**token.decimals());
         uint tokenSupplied = ethSupplied.mul(token_reserves).div(eth_reserves);
         require(tokenSupplied > 0, 'token supplied less than 0');
         // If the caller possesses insufficient tokens to equal the ETH sent, then transaction must fail.
         require(token.balanceOf(msg.sender) >= tokenSupplied, 'Not enough balance to transfer token');
         token.transferFrom(msg.sender, address(this), tokenSupplied);
+        // Mint LP tokens
+        uint amountMinted = totalSupply.mul(ethSupplied).div(eth_reserves);
+        updateLiquidityInfo(totalSupply.add(amountMinted), lpPool[msg.sender].add(amountMinted));
         // Update token_reserves, eth_reserves, and k.
-        token_reserves = token_reserves.add(tokenSupplied);
-        eth_reserves = eth_reserves.add(ethSupplied);
-        k = eth_reserves.mul(token_reserves);
+        updateReserveRatio(eth_reserves.add(ethSupplied), token_reserves.add(tokenSupplied));
         // Emit AddLiquidity event.
         emit AddLiquidity(msg.sender, tokenSupplied);
     }
@@ -138,13 +133,7 @@ contract TokenExchange {
         public 
         payable
     {
-        /******* TODO: Implement this function *******/
-        /* HINTS:
-            Calculate the amount of your tokens that should be also removed.
-            Transfer the ETH and Token to the provider.
-            Update token_reserves, eth_reserves, and k.
-            Emit RemoveLiquidity event.
-        */
+
     }
 
     // Function removeAllLiquidity: Removes all liquidity that msg.sender is entitled to withdraw
@@ -161,8 +150,26 @@ contract TokenExchange {
     }
 
     /***  Define helper functions for liquidity management here as needed: ***/
+    function balanceOfPool(address account)
+      external
+      view
+      returns (uint)
+    {
+      return lpPool[account];
+    }
 
+    function updateReserveRatio(uint ethAmt, uint tokenAmt) private
+    {
+      token_reserves = tokenAmt;
+      eth_reserves = ethAmt;
+      k = eth_reserves.mul(token_reserves);
+    }
 
+    function updateLiquidityInfo(uint newSupply, uint amountMinted) private
+    {
+      totalSupply = newSupply;
+      lpPool[msg.sender] = amountMinted;
+    }
 
     /* ========================= Swap Functions =========================  */ 
 

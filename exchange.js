@@ -66,10 +66,9 @@ function log(description, obj) {
 
 /*** ADD LIQUIDITY ***/
 async function addLiquidity(amountEth, maxSlippagePct) {
-    const ethPrice = await exchange_contract.methods.priceETH().call({
+    const tokensToSupply = await exchange_contract.methods.priceETH().call({
       from: web3.eth.defaultAccount
     });
-    const tokensToSupply = amountEth * ethPrice * (10 ** -18);
     await token_contract.methods.approve(exchange_address, tokensToSupply).send({
       from: web3.eth.defaultAccount
     });
