@@ -123,7 +123,7 @@ contract TokenExchange {
         // Update token_reserves, eth_reserves, and k.
         updateReserveRatio(eth_reserves.add(ethSupplied), token_reserves.add(tokenSupplied));
         // Emit AddLiquidity event.
-        emit AddLiquidity(msg.sender, tokenSupplied);
+        emit AddLiquidity(msg.sender, ethSupplied);
     }
 
 
@@ -133,7 +133,23 @@ contract TokenExchange {
         public 
         payable
     {
-
+      // Withdrawn at the current exchange rate (reserve ratio), not the ratio of their originial investment
+      // This means some value can be lost from market fluctuations and arbitrage
+      uint amountBurned = totalSupply.mul(amountETH).div(eth_reserves);
+      // Calculate the proportional share of eth and tokens from the pool
+      uint ethWithdrawn = eth_reserves.mul(amountBurned).div(totalSupply);
+      uint tokensWithdrawn = token_reserves.mul(amountBurned).div(totalSupply);
+      // If the caller possesses insufficient tokens to equal the ETH sent, then transaction must fail.
+      require(token.balanceOf(address(this)) >= tokensWithdrawn, 'Not enough liquidity to withdraw token');
+      require(address(this).balance >= ethWithdrawn, 'Not enough liquidity to withdraw ETH');
+      token.transfer(msg.sender, tokensWithdrawn);
+      payable(msg.sender).transfer(ethWithdrawn);
+      // Burn LP tokens
+      updateLiquidityInfo(totalSupply.sub(amountBurned), lpPool[msg.sender].sub(amountBurned));
+      // Update token_reserves, eth_reserves, and k.
+      updateReserveRatio(eth_reserves.sub(ethWithdrawn), token_reserves.sub(tokensWithdrawn));
+      // Emit RemoveLiquidity event.
+      emit RemoveLiquidity(msg.sender, amountETH);
     }
 
     // Function removeAllLiquidity: Removes all liquidity that msg.sender is entitled to withdraw

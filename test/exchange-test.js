@@ -61,6 +61,27 @@ describe("Exchange", function () {
     it("Should not be able to add liquidity with insufficient balance", async function() {
       await expect(exchange.addLiquidity({ value: 2000 })).to.be.reverted;
     });
+
+    it("Should be able to remove liquidity they provided", async function () {
+      await exchange.removeLiquidity(20);
+      expect(await exchange.eth_reserves()).to.equal(0);
+      expect(await exchange.token_reserves()).to.equal(0);
+      expect(await exchange.k()).to.equal(0);
+      expect(await exchange.balanceOfPool(owner.getAddress())).to.equal(0);
+    });
+
+    it("Should be able to add then remove liquidity", async function () {
+      await exchange.addLiquidity({ value: 2 });
+      await exchange.removeLiquidity(22);
+      expect(await exchange.eth_reserves()).to.equal(0);
+      expect(await exchange.token_reserves()).to.equal(0);
+      expect(await exchange.k()).to.equal(0);
+      expect(await exchange.balanceOfPool(owner.getAddress())).to.equal(0);
+    });
+
+    it("Should not be able to remove liquidity more than they provided", async function () {
+      await expect(exchange.removeLiquidity(30)).to.be.reverted;
+    });
    });
 
 });
