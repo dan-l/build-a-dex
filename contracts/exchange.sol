@@ -194,12 +194,6 @@ contract TokenExchange {
     {
         /******* TODO: Implement this function *******/
         /* HINTS:
-            Calculate amount of ETH should be swapped based on exchange rate.
-            Transfer the ETH to the provider.
-            If the caller possesses insufficient tokens, transaction must fail.
-            If performing the swap would exhaus total ETH supply, transaction must fail.
-            Update token_reserves and eth_reserves.
-
             Part 4: 
                 Expand the function to take in addition parameters as needed.
                 If current exchange_rate > slippage limit, abort the swap.
@@ -210,6 +204,18 @@ contract TokenExchange {
                 Keep track of the liquidity fees to be added.
         */
 
+        //  Calculate amount of ETH should be swapped based on exchange rate.
+        uint amountETH = amountTokens.mul(token_reserves).div(eth_reserves);
+        // If performing the swap would exhaus total ETH supply, transaction must fail.
+        require(amountETH < eth_reserves, "Swap would exhaust total ETH supply");
+        // Transfer the ETH to the provider.
+        // If the caller possesses insufficient tokens, transaction must fail.
+        require(token.balanceOf(msg.sender) >= amountTokens, 'Not enough tokens to swap');
+        require(address(this).balance >= amountETH, 'Not enough ETH to swap');
+        token.transferFrom(msg.sender, address(this), amountTokens);
+        payable(msg.sender).transfer(amountETH);
+        //  Update token_reserves and eth_reserves.
+        updateReserveRatio(eth_reserves.sub(amountETH), token_reserves.add(amountTokens));
 
         /***************************/
         // DO NOT MODIFY BELOW THIS LINE
@@ -237,11 +243,6 @@ contract TokenExchange {
     {
         /******* TODO: Implement this function *******/
         /* HINTS:
-            Calculate amount of your tokens should be swapped based on exchange rate.
-            Transfer the amount of your tokens to the provider.
-            If performing the swap would exhaus total token supply, transaction must fail.
-            Update token_reserves and eth_reserves.
-
             Part 4: 
                 Expand the function to take in addition parameters as needed.
                 If current exchange_rate > slippage limit, abort the swap. 
@@ -252,6 +253,17 @@ contract TokenExchange {
                 Keep track of the liquidity fees to be added.
         */
 
+        //  Calculate amount of your tokens should be swapped based on exchange rate.
+        uint amountTokens = msg.value.mul(eth_reserves).div(token_reserves);
+        // If performing the swap would exhaus total tokens supply, transaction must fail.
+        require(amountTokens < token_reserves, "Swap would exhaust total tokens supply");
+        // Transfer the tokens to the provider.
+        // If the caller possesses insufficient ETH, transaction must fail.
+        require(address(msg.sender).balance >= msg.value, 'Not enough ETH to swap');
+        require(token.balanceOf(address(this)) >= amountTokens, 'Not enough tokens to swap');
+        token.transfer(msg.sender, amountTokens);
+        //  Update token_reserves and eth_reserves.
+        updateReserveRatio(eth_reserves.add(msg.value), token_reserves.sub(amountTokens));
 
         /**************************/
         // DO NOT MODIFY BELOW THIS LINE

@@ -112,4 +112,34 @@ describe("Exchange", function () {
     });
    });
 
+   describe("Swapping", async function() {
+    it("Should be able to swap tokens for ETH", async function () {
+      // based on rate, 2 tokens for 1 eth
+      await exchange.swapTokensForETH(2);
+      expect(await exchange.eth_reserves()).to.equal(19);
+      expect(await exchange.token_reserves()).to.equal(12);
+      expect(await token.balanceOf(owner.getAddress())).to.equal(988);
+      expect(await token.balanceOf(exchange.address)).to.equal(12);
+    });
+
+    it("Should be able to swap ETH for tokens", async function () {
+       // based on rate, 2 tokens for 1 eth
+      await exchange.swapETHForTokens({ value: 2 });
+      expect(await exchange.eth_reserves()).to.equal(22);
+      expect(await exchange.token_reserves()).to.equal(6);
+      expect(await token.balanceOf(owner.getAddress())).to.equal(994);
+      expect(await token.balanceOf(exchange.address)).to.equal(6);
+    });
+
+    it("Should not be able to swap if insufficient balance", async function () {
+      await expect(exchange.swapTokensForETH(10000)).to.be.reverted;
+      await expect(exchange.swapETHForTokens(100)).to.be.reverted;
+    });
+
+    it ("Should not be able to swap if it will exhaust supply", async function () {
+      await expect(exchange.swapTokensForETH(40)).to.be.reverted;
+      await expect(exchange.swapETHForTokens(5)).to.be.reverted;
+    });
+   });
+
 });
