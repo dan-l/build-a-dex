@@ -158,11 +158,8 @@ contract TokenExchange {
         external
         payable
     {
-        /******* TODO: Implement this function *******/
-        /* HINTS:
-            Decide on the maximum allowable ETH that msg.sender can remove.
-            Call removeLiquidity().
-        */
+      uint maximumAllowableETH = lpPool[msg.sender].mul(eth_reserves).div(totalSupply);
+      removeLiquidity(maximumAllowableETH);
     }
 
     /***  Define helper functions for liquidity management here as needed: ***/
