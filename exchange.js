@@ -66,38 +66,47 @@ function log(description, obj) {
 
 /*** ADD LIQUIDITY ***/
 async function addLiquidity(amountEth, maxSlippagePct) {
-    const tokensToSupply = await exchange_contract.methods.priceETH().call({
-      from: web3.eth.defaultAccount
-    });
+    const { token_eth_rate } = await getPoolState();
+    const tokensToSupply = Math.floor(Number(amountEth) * token_eth_rate);
     await token_contract.methods.approve(exchange_address, tokensToSupply).send({
       from: web3.eth.defaultAccount
     });
     await exchange_contract.methods.addLiquidity().send({
       value: amountEth,
-      from: web3.eth.defaultAccount
+      from: web3.eth.defaultAccount,
+      gas : 999999
     });
 }
 
 /*** REMOVE LIQUIDITY ***/
 async function removeLiquidity(amountEth, maxSlippagePct) {
-    /** TODO: ADD YOUR CODE HERE **/
-
+  await exchange_contract.methods.removeLiquidity(amountEth).send({
+    from: web3.eth.defaultAccount,
+    gas : 999999
+  });
 }
 
 async function removeAllLiquidity(maxSlippagePct) {
-    /** TODO: ADD YOUR CODE HERE **/
-
+   await exchange_contract.methods.removeAllLiquidity().send({
+     from: web3.eth.defaultAccount,
+     gas : 999999
+   });
 }
 
 /*** SWAP ***/
 async function swapTokensForETH(amountToken, maxSlippagePct) {
-    /** TODO: ADD YOUR CODE HERE **/
-
+  await exchange_contract.methods.swapTokensForETH(amountToken).send({
+    from: web3.eth.defaultAccount,
+    gas : 999999
+  });
 }
 
 async function swapETHForTokens(amountETH, maxSlippagePct) {
-    /** TODO: ADD YOUR CODE HERE **/
-
+  await exchange_contract.methods.swapETHForTokens().send({
+    value: amountETH,
+    from: web3.eth.defaultAccount,
+    gas : 999999
+  });
 }
 
 // =============================================================================
@@ -272,4 +281,4 @@ async function sanityCheck() {
 }
 
 // Uncomment this to run when directly opening index.html
-// sanityCheck();		
+sanityCheck();		
