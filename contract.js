@@ -1,7 +1,7 @@
 // =============================================================================
 //         ABIs and Contract Addresses: Paste Your ABIs/Addresses Here
 // =============================================================================
-const token_address = '0x3d069f1E2b6EFb38AF9E742bDa5F50a4C6274bD8';
+const token_address = '0xbd5baDD60874fCE14d3F1A25c929781277b62Ad7';
 const token_abi = [
     {
       "inputs": [],
@@ -297,7 +297,7 @@ const token_abi = [
     }
   ];
 
-const exchange_address = '0x3d27fD6842F9ca8c9eFa284Bd4F1BF324998258D';
+const exchange_address = '0x652a8a06c392FCbC4522e1E3C54520d46aFc9d26';
 const exchange_abi = [
     {
       "inputs": [
@@ -372,7 +372,18 @@ const exchange_abi = [
       "type": "fallback"
     },
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "minToken",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "maxToken",
+          "type": "uint256"
+        }
+      ],
       "name": "addLiquidity",
       "outputs": [],
       "stateMutability": "payable",
@@ -386,6 +397,25 @@ const exchange_abi = [
           "internalType": "address",
           "name": "",
           "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "balanceOfPool",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",
@@ -469,6 +499,16 @@ const exchange_abi = [
           "internalType": "uint256",
           "name": "amountETH",
           "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "minToken",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "maxToken",
+          "type": "uint256"
         }
       ],
       "name": "removeLiquidity",
@@ -477,7 +517,13 @@ const exchange_abi = [
       "type": "function"
     },
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "minTokens",
+          "type": "uint256"
+        }
+      ],
       "name": "swapETHForTokens",
       "outputs": [],
       "stateMutability": "payable",
@@ -488,6 +534,11 @@ const exchange_abi = [
         {
           "internalType": "uint256",
           "name": "amountTokens",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "minEth",
           "type": "uint256"
         }
       ],

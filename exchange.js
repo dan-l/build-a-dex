@@ -67,11 +67,14 @@ function log(description, obj) {
 /*** ADD LIQUIDITY ***/
 async function addLiquidity(amountEth, maxSlippagePct) {
     const { token_eth_rate } = await getPoolState();
-    const tokensToSupply = Math.floor(Number(amountEth) * token_eth_rate);
-    await token_contract.methods.approve(exchange_address, tokensToSupply).send({
+    // out of 100
+    maxSlippagePct = maxSlippagePct / 100;
+    const minTokens = Math.floor(amountEth * token_eth_rate * (1 - maxSlippagePct));
+    const maxTokens = Math.floor(amountEth * token_eth_rate * (1 + maxSlippagePct));
+    await token_contract.methods.approve(exchange_address, maxTokens).send({
       from: web3.eth.defaultAccount
     });
-    await exchange_contract.methods.addLiquidity().send({
+    await exchange_contract.methods.addLiquidity(minTokens, maxTokens).send({
       value: amountEth,
       from: web3.eth.defaultAccount,
       gas : 999999
@@ -80,7 +83,12 @@ async function addLiquidity(amountEth, maxSlippagePct) {
 
 /*** REMOVE LIQUIDITY ***/
 async function removeLiquidity(amountEth, maxSlippagePct) {
-  await exchange_contract.methods.removeLiquidity(amountEth).send({
+  const { token_eth_rate } = await getPoolState();
+  // out of 100
+  maxSlippagePct = maxSlippagePct / 100;
+  const minTokens = Math.floor(amountEth * token_eth_rate * (1 - maxSlippagePct));
+  const maxTokens = Math.floor(amountEth * token_eth_rate * (1 + maxSlippagePct));
+  await exchange_contract.methods.removeLiquidity(amountEth, minTokens, maxTokens).send({
     from: web3.eth.defaultAccount,
     gas : 999999
   });
@@ -95,14 +103,22 @@ async function removeAllLiquidity(maxSlippagePct) {
 
 /*** SWAP ***/
 async function swapTokensForETH(amountToken, maxSlippagePct) {
-  await exchange_contract.methods.swapTokensForETH(amountToken).send({
+  const { eth_token_rate } = await getPoolState();
+  // out of 100
+  maxSlippagePct = maxSlippagePct / 100;
+  const minETH = Math.floor(amountToken * eth_token_rate * ( 1 - maxSlippagePct));
+  await exchange_contract.methods.swapTokensForETH(amountToken, minETH).send({
     from: web3.eth.defaultAccount,
     gas : 999999
   });
 }
 
 async function swapETHForTokens(amountETH, maxSlippagePct) {
-  await exchange_contract.methods.swapETHForTokens().send({
+  const { token_eth_rate } = await getPoolState();
+  // out of 100
+  maxSlippagePct = maxSlippagePct / 100;
+  const minTokens = Math.floor(amountETH * token_eth_rate * (1 - maxSlippagePct));
+  await exchange_contract.methods.swapETHForTokens(minTokens).send({
     value: amountETH,
     from: web3.eth.defaultAccount,
     gas : 999999
@@ -281,4 +297,4 @@ async function sanityCheck() {
 }
 
 // Uncomment this to run when directly opening index.html
-sanityCheck();		
+// sanityCheck();

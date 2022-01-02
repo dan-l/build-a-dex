@@ -46,7 +46,8 @@ describe("Exchange", function () {
 
    describe("Liquidity", function() {
     it("Should be able to add liquidity", async function() {
-      await exchange.addLiquidity({ value: 2 });
+      // min token 1, max 2, actual 1 
+      await exchange.addLiquidity(1, 2, { value: 2 });
       // 20 (pool) + 2 (liquidity)
       expect(await exchange.eth_reserves()).to.equal(22);
       // 2 eth: 1 token = 10(pool) + 1(liquidity)
@@ -58,15 +59,18 @@ describe("Exchange", function () {
     });
 
     it("Should supply more than 0 eth to add liquidity", async function() {
-      await expect(exchange.addLiquidity({ value: 0 })).to.be.reverted;
+      // min token 1, max 2, actual 1 
+      await expect(exchange.addLiquidity(1, 2, { value: 0 })).to.be.reverted;
     });
 
     it("Should not be able to add liquidity with insufficient balance", async function() {
-      await expect(exchange.addLiquidity({ value: 2000 })).to.be.reverted;
+      // min token 1, max 2, actual 1 
+      await expect(exchange.addLiquidity(1, 2, { value: 2000 })).to.be.reverted;
     });
 
     it("Should be able to remove liquidity they provided", async function () {
-      await exchange.removeLiquidity(20);
+      // min token 5, max 15, actual 10
+      await exchange.removeLiquidity(20, 5, 15);
       expect(await exchange.eth_reserves()).to.equal(0);
       expect(await exchange.token_reserves()).to.equal(0);
       expect(await exchange.k()).to.equal(0);
@@ -75,8 +79,10 @@ describe("Exchange", function () {
     });
 
     it("Should be able to add then remove liquidity", async function () {
-      await exchange.addLiquidity({ value: 2 });
-      await exchange.removeLiquidity(22);
+      // min token 1, max 2, actual 1
+      await exchange.addLiquidity(1, 2, { value: 2 });
+      // min token 5, max 15, actual 11
+      await exchange.removeLiquidity(22, 5, 15);
       expect(await exchange.eth_reserves()).to.equal(0);
       expect(await exchange.token_reserves()).to.equal(0);
       expect(await exchange.k()).to.equal(0);
@@ -87,16 +93,20 @@ describe("Exchange", function () {
     it("Should not be able to remove liquidity more than they provided", async function () {
       // someone else provided liquidity
       token.connect(addr1).approve(exchange.address, 20);
-      await exchange.connect(addr1).addLiquidity({ value: 20 });
-      await expect(exchange.removeLiquidity(30)).to.be.reverted;
+      // min token 10, max 20, actual 10
+      await exchange.connect(addr1).addLiquidity(10, 20, { value: 20 });
+      // min token 5, max 15, actual 15
+      await expect(exchange.removeLiquidity(30, 5, 15)).to.be.reverted;
       expect(await token.balanceOf(owner.getAddress())).to.equal(990);
     });
 
     it("Should be able to remove all liquidity", async function () {
       // add in more liquidity
-      await exchange.addLiquidity({ value: 2 });
+      // min token 1, max 2, actual 1
+      await exchange.addLiquidity(1, 2, { value: 2 });
       // remove some liquidity
-      await exchange.removeLiquidity(2);
+      // min token 1, max 5, actual 1
+      await exchange.removeLiquidity(2, 1, 5);
       expect(await exchange.eth_reserves()).to.equal(20);
       expect(await exchange.token_reserves()).to.equal(10);
       expect(await exchange.k()).to.equal(10*20);
@@ -115,7 +125,7 @@ describe("Exchange", function () {
    describe("Swapping", async function() {
     it("Should be able to swap tokens for ETH", async function () {
       // based on rate, 2 tokens for 1 eth
-      await exchange.swapTokensForETH(2);
+      await exchange.swapTokensForETH(2, 1);
       expect(await exchange.eth_reserves()).to.equal(19);
       expect(await exchange.token_reserves()).to.equal(12);
       expect(await token.balanceOf(owner.getAddress())).to.equal(988);
@@ -124,7 +134,7 @@ describe("Exchange", function () {
 
     it("Should be able to swap ETH for tokens", async function () {
        // based on rate, 2 tokens for 1 eth
-      await exchange.swapETHForTokens({ value: 2 });
+      await exchange.swapETHForTokens(4, { value: 2 });
       expect(await exchange.eth_reserves()).to.equal(22);
       expect(await exchange.token_reserves()).to.equal(6);
       expect(await token.balanceOf(owner.getAddress())).to.equal(994);
@@ -132,13 +142,18 @@ describe("Exchange", function () {
     });
 
     it("Should not be able to swap if insufficient balance", async function () {
-      await expect(exchange.swapTokensForETH(10000)).to.be.reverted;
-      await expect(exchange.swapETHForTokens(100)).to.be.reverted;
+      await expect(exchange.swapTokensForETH(10000, 5000)).to.be.reverted;
+      await expect(exchange.swapETHForTokens(200, { value: 100})).to.be.reverted;
     });
 
     it ("Should not be able to swap if it will exhaust supply", async function () {
-      await expect(exchange.swapTokensForETH(40)).to.be.reverted;
-      await expect(exchange.swapETHForTokens(5)).to.be.reverted;
+      await expect(exchange.swapTokensForETH(40, 20)).to.be.reverted;
+      await expect(exchange.swapETHForTokens(10, { value: 5})).to.be.reverted;
+    });
+
+    it("Shoult not be able to swap if it exceeded slippage", async function() {
+      await expect(exchange.swapTokensForETH(2, 5)).to.be.reverted;
+      await expect(exchange.swapETHForTokens(10, { value: 2})).to.be.reverted;
     });
    });
 

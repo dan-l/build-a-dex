@@ -106,7 +106,7 @@ contract TokenExchange {
 
     // Function addLiquidity: Adds liquidity given a supply of ETH (sent to the contract as msg.value)
     // You can change the inputs, or the scope of your function, as needed.
-    function addLiquidity() 
+    function addLiquidity(uint minToken, uint maxToken) 
         external 
         payable
     {
@@ -114,6 +114,9 @@ contract TokenExchange {
         // Calculate the liquidity to be added based on what was sent in and the prices.
         uint tokenSupplied = ethSupplied.mul(token_reserves).div(eth_reserves);
         require(tokenSupplied > 0, 'token supplied less than 0');
+        // Check slippage
+        require(tokenSupplied >= minToken, 'token supplied less than min');
+        require(tokenSupplied <= maxToken, 'token supplied more than max');
         // If the caller possesses insufficient tokens to equal the ETH sent, then transaction must fail.
         require(token.balanceOf(msg.sender) >= tokenSupplied, 'Not enough balance to transfer token');
         token.transferFrom(msg.sender, address(this), tokenSupplied);
@@ -129,7 +132,7 @@ contract TokenExchange {
 
     // Function removeLiquidity: Removes liquidity given the desired amount of ETH to remove.
     // You can change the inputs, or the scope of your function, as needed.
-    function removeLiquidity(uint amountETH)
+    function removeLiquidity(uint amountETH, uint minToken, uint maxToken)
         public 
         payable
     {
@@ -139,6 +142,11 @@ contract TokenExchange {
       // Calculate the proportional share of eth and tokens from the pool
       uint ethWithdrawn = eth_reserves.mul(amountBurned).div(totalSupply);
       uint tokensWithdrawn = token_reserves.mul(amountBurned).div(totalSupply);
+      // Check slippage
+      if (minToken != 0 && maxToken != 0) {
+        require(tokensWithdrawn >= minToken, 'token withdrawn less than min');
+        require(tokensWithdrawn <= maxToken, 'token withdrawn more than max');
+      }
       // If the caller possesses insufficient tokens to equal the ETH sent, then transaction must fail.
       require(token.balanceOf(address(this)) >= tokensWithdrawn, 'Not enough liquidity to withdraw token');
       require(address(this).balance >= ethWithdrawn, 'Not enough liquidity to withdraw ETH');
@@ -159,7 +167,7 @@ contract TokenExchange {
         payable
     {
       uint maximumAllowableETH = lpPool[msg.sender].mul(eth_reserves).div(totalSupply);
-      removeLiquidity(maximumAllowableETH);
+      removeLiquidity(maximumAllowableETH, 0, 0);
     }
 
     /***  Define helper functions for liquidity management here as needed: ***/
@@ -188,16 +196,12 @@ contract TokenExchange {
 
     // Function swapTokensForETH: Swaps your token with ETH
     // You can change the inputs, or the scope of your function, as needed.
-    function swapTokensForETH(uint amountTokens)
+    function swapTokensForETH(uint amountTokens, uint minEth)
         external 
         payable
     {
         /******* TODO: Implement this function *******/
         /* HINTS:
-            Part 4: 
-                Expand the function to take in addition parameters as needed.
-                If current exchange_rate > slippage limit, abort the swap.
-            
             Part 5:
                 Only exchange amountTokens * (1 - liquidity_percent), 
                     where % is sent to liquidity providers.
@@ -206,6 +210,8 @@ contract TokenExchange {
 
         //  Calculate amount of ETH should be swapped based on exchange rate.
         uint amountETH = amountTokens.mul(token_reserves).div(eth_reserves);
+        // Check for slippage
+        require(amountETH >= minEth, "Slippage limit exceeded");
         // If performing the swap would exhaus total ETH supply, transaction must fail.
         require(amountETH < eth_reserves, "Swap would exhaust total ETH supply");
         // Transfer the ETH to the provider.
@@ -237,16 +243,12 @@ contract TokenExchange {
     // Function swapETHForTokens: Swaps ETH for your tokens.
     // ETH is sent to contract as msg.value.
     // You can change the inputs, or the scope of your function, as needed.
-    function swapETHForTokens()
+    function swapETHForTokens(uint minTokens)
         external
         payable 
     {
         /******* TODO: Implement this function *******/
         /* HINTS:
-            Part 4: 
-                Expand the function to take in addition parameters as needed.
-                If current exchange_rate > slippage limit, abort the swap. 
-            
             Part 5: 
                 Only exchange amountTokens * (1 - %liquidity), 
                     where % is sent to liquidity providers.
@@ -255,6 +257,8 @@ contract TokenExchange {
 
         //  Calculate amount of your tokens should be swapped based on exchange rate.
         uint amountTokens = msg.value.mul(eth_reserves).div(token_reserves);
+        // Check for slippage
+        require(amountTokens >= minTokens, "Slippage limit exceeded");
         // If performing the swap would exhaus total tokens supply, transaction must fail.
         require(amountTokens < token_reserves, "Swap would exhaust total tokens supply");
         // Transfer the tokens to the provider.
